@@ -444,6 +444,58 @@
   }
   .field-address::after { content: none; }
 
+  /* ================ QUADRANT REFERENCE ================ */
+  .quadrant-map-wrap {
+    border: 1px dashed var(--line);
+    border-radius: 4px;
+    padding: 12px 10px 6px;
+    margin: 4px 0 20px;
+    background: rgba(255,255,255,.35);
+  }
+  .quadrant-map {
+    display: block;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+    color: var(--ink-soft);
+  }
+  .quadrant-map .q-num {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    font-style: italic;
+    fill: var(--accent);
+  }
+  .quadrant-map .q-pos {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.8px;
+    fill: var(--ink);
+    font-weight: 500;
+  }
+  .quadrant-map .q-range {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7.5px;
+    letter-spacing: 0.6px;
+    fill: var(--muted);
+  }
+  .quadrant-map-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 6px;
+  }
+  @media (max-width: 640px) {
+    .quadrant-map-wrap { padding: 10px 8px 4px; margin: 2px 0 16px; }
+    .quadrant-map .q-num { font-size: 18px; }
+    .quadrant-map .q-pos { font-size: 7.5px; letter-spacing: 1.4px; }
+    .quadrant-map .q-range { font-size: 7px; }
+    .quadrant-map-caption { font-size: 8px; letter-spacing: 1.4px; }
+  }
+
   /* ================ DENTAL ARCH ================ */
   .arch-container { position: relative; padding: 20px 8px; }
   .arch-label {
@@ -941,6 +993,37 @@
       <button class="active" data-system="Victory">Victory LP MBT 022</button>
       <button data-system="Clarity">Clarity Adv. MBT 022</button>
     </div>
+
+    <!-- Quadrant reference -->
+    <figure class="quadrant-map-wrap">
+      <svg class="quadrant-map" viewBox="0 0 320 180" role="img" aria-label="Dental quadrant reference diagram">
+        <!-- Upper arch curve -->
+        <path d="M 50 22 Q 160 2 270 22" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4" />
+        <!-- Midline -->
+        <line x1="160" y1="30" x2="160" y2="162" stroke="currentColor" stroke-width="0.6" stroke-dasharray="2,3" opacity="0.35" />
+        <!-- Occlusal plane -->
+        <line x1="30" y1="96" x2="290" y2="96" stroke="currentColor" stroke-width="0.5" opacity="0.3" />
+        <!-- Q1 — Upper Right -->
+        <text x="95" y="58" text-anchor="middle" class="q-num">1</text>
+        <text x="95" y="75" text-anchor="middle" class="q-pos">UPPER RIGHT</text>
+        <text x="95" y="87" text-anchor="middle" class="q-range">17 — 11</text>
+        <!-- Q2 — Upper Left -->
+        <text x="225" y="58" text-anchor="middle" class="q-num">2</text>
+        <text x="225" y="75" text-anchor="middle" class="q-pos">UPPER LEFT</text>
+        <text x="225" y="87" text-anchor="middle" class="q-range">21 — 27</text>
+        <!-- Q4 — Lower Right -->
+        <text x="95" y="122" text-anchor="middle" class="q-num">4</text>
+        <text x="95" y="139" text-anchor="middle" class="q-pos">LOWER RIGHT</text>
+        <text x="95" y="151" text-anchor="middle" class="q-range">47 — 41</text>
+        <!-- Q3 — Lower Left -->
+        <text x="225" y="122" text-anchor="middle" class="q-num">3</text>
+        <text x="225" y="139" text-anchor="middle" class="q-pos">LOWER LEFT</text>
+        <text x="225" y="151" text-anchor="middle" class="q-range">31 — 37</text>
+        <!-- Lower arch curve -->
+        <path d="M 50 170 Q 160 190 270 170" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.4" />
+      </svg>
+      <figcaption class="quadrant-map-caption">FDI Quadrant Reference</figcaption>
+    </figure>
 
     <!-- Dental arch -->
     <div class="arch-container">

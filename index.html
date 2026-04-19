@@ -262,6 +262,14 @@
     .tooth-code { font-size: 7px; }
   }
 
+  /* Landscape phones / small tablets (641–960px) — fit 14 teeth on one row */
+  @media (min-width: 641px) and (max-width: 960px) {
+    .arch-container .arch { flex-wrap: nowrap; }
+    .arch-container .tooth { min-width: 0; flex: 1 1 0; max-width: 44px; }
+    .arch-container .tooth-btn { width: 100%; max-width: 40px; height: 50px; }
+    .quadrant-divider { margin: 0 2px; }
+  }
+
   /* ================ PANEL ================ */
   .panel {
     background: var(--paper);

@@ -9,6 +9,35 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script type="module">
+  import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCJ8P-HXw5e0yOOgcWeaYlrJRzhDs43FME",
+    authDomain: "bracket-selector-39fdc.firebaseapp.com",
+    projectId: "bracket-selector-39fdc",
+    storageBucket: "bracket-selector-39fdc.firebasestorage.app",
+    messagingSenderId: "941559381970",
+    appId: "1:941559381970:web:fa61d758f41653836d520b"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  window.__fb = {
+    app, auth, db, firebaseConfig,
+    initializeApp, deleteApp, getAuth,
+    signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword,
+    setPersistence, browserLocalPersistence, browserSessionPersistence,
+    collection, doc, getDoc, getDocs, setDoc, deleteDoc,
+    ADMIN_EMAIL: 'sandra.gauthier.hd@gmail.com'
+  };
+  window.__fbOnAuth = (cb) => onAuthStateChanged(auth, cb);
+  window.dispatchEvent(new Event('fb-ready'));
+</script>
 <style>
   :root {
     --bg: #f4f1ea;
@@ -1318,13 +1347,6 @@
       </div>
       <div class="login-error" id="addUserError"></div>
       <button type="submit" class="login-btn">Add User</button>
-      <div class="add-user-sync">
-        <button type="button" id="copyUsersBtn">Copy users.json</button>
-        <a class="login-btn" href="https://github.com/samefi/bracket-selector/edit/main/users.json" target="_blank" rel="noopener" style="flex:1 1 auto;display:inline-block;text-align:center;text-decoration:none;padding:8px 12px;font-size:9px;background:transparent;color:var(--ink-soft);border-color:var(--line);">Open on GitHub</a>
-      </div>
-      <p style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.8px;line-height:1.5;">
-        Local additions work only on this device. To share them across all devices, click <strong>Copy users.json</strong>, then paste into <code>users.json</code> on GitHub and commit.
-      </p>
     </form>
   </div>
 </div>
@@ -1481,144 +1503,120 @@
 </div>
 
 <script>
-// Fallback kept in case the remote roster can't load; otherwise the roster file is authoritative
-const SEED = [
-  { u: 'sandra.gauthier.hd@gmail.com', k: '76dc5791da8c92f9' + 'c0891aadcdd2e561' + 'c4da0bf1d8fe41ec' + '48d946b34b604936', r: 'admin' }
-];
-const SK = 'bracketSelector.s.v1';
-const SU = 'bracketSelector.su.v1';
-const UK = 'bracketSelector.u.v1';
+const FB_ADMIN_EMAIL = 'sandra.gauthier.hd@gmail.com';
+let _currentUser = null;
 
-let _cache = [];
-const _pre = fetch('users.json?t=' + Date.now(), { cache: 'no-store' })
-  .then(r => r.ok ? r.json() : [])
-  .then(d => { if (Array.isArray(d)) _cache = d; return _cache; })
-  .catch(() => []);
-
-async function _d(s) {
-  const b = new TextEncoder().encode(s);
-  const h = await crypto.subtle.digest('SHA-256', b);
-  return Array.from(new Uint8Array(h))
-    .map(x => x.toString(16).padStart(2, '0'))
-    .join('');
+function _waitFB() {
+  if (window.__fb && window.__fbOnAuth) return Promise.resolve();
+  return new Promise(resolve => {
+    window.addEventListener('fb-ready', resolve, { once: true });
+  });
 }
 
-function _loadU() {
-  try { return JSON.parse(localStorage.getItem(UK) || '[]'); }
-  catch { return []; }
+function _showAdmin() {
+  const isAdmin = _currentUser && _currentUser.role === 'admin';
+  document.getElementById('manageUsersBtn').style.display = isAdmin ? '' : 'none';
 }
-function _saveU(arr) {
-  try { localStorage.setItem(UK, JSON.stringify(arr)); } catch {}
-}
-function _all() {
-  const m = new Map();
-  SEED.forEach(u => m.set(u.u.toLowerCase(), u));
-  _cache.forEach(u => { if (u && u.u) m.set(u.u.toLowerCase(), u); });
-  _loadU().forEach(u => { if (u && u.u) m.set(u.u.toLowerCase(), u); });
-  return Array.from(m.values());
-}
-function _has() {
-  try {
-    return localStorage.getItem(SK) === '1' || sessionStorage.getItem(SK) === '1';
-  } catch { return false; }
-}
-function _current() {
-  try {
-    const email = localStorage.getItem(SU) || sessionStorage.getItem(SU);
-    if (!email) return null;
-    return _all().find(x => x.u.toLowerCase() === email.toLowerCase()) || null;
-  } catch { return null; }
-}
-function _grant(r, email) {
-  try {
-    const s = r ? localStorage : sessionStorage;
-    s.setItem(SK, '1');
-    s.setItem(SU, email);
-  } catch {}
-}
-function _revoke() {
-  try {
-    localStorage.removeItem(SK);
-    localStorage.removeItem(SU);
-    sessionStorage.removeItem(SK);
-    sessionStorage.removeItem(SU);
-  } catch {}
-  location.reload();
+
+async function _loadRole(u) {
+  const { db, doc, getDoc, setDoc } = window.__fb;
+  const ref = doc(db, 'users', u.uid);
+  let snap = await getDoc(ref);
+  if (!snap.exists()) {
+    if ((u.email || '').toLowerCase() === FB_ADMIN_EMAIL) {
+      await setDoc(ref, { email: u.email, role: 'admin', createdAt: Date.now() });
+      snap = await getDoc(ref);
+    } else {
+      return null;
+    }
+  }
+  return snap.data();
 }
 
 async function _submit(e) {
   e.preventDefault();
-  await _pre;
-  const u = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const v = document.getElementById('loginPwd').value;
-  const r = document.getElementById('loginRemember').checked;
+  const emailEl = document.getElementById('loginEmail');
+  const pwdEl = document.getElementById('loginPwd');
+  const rememberEl = document.getElementById('loginRemember');
   const errEl = document.getElementById('loginError');
   errEl.textContent = '';
-
-  const h = await _d(v);
-  const match = _all().find(x => x.u.toLowerCase() === u && x.k === h);
-  if (!match) {
-    errEl.textContent = 'Invalid email or password';
-    document.getElementById('loginPwd').value = '';
-    return;
+  const submitBtn = document.querySelector('#loginForm button[type=submit]');
+  if (submitBtn) submitBtn.disabled = true;
+  try {
+    await _waitFB();
+    const fb = window.__fb;
+    await fb.setPersistence(fb.auth, rememberEl.checked ? fb.browserLocalPersistence : fb.browserSessionPersistence);
+    await fb.signInWithEmailAndPassword(fb.auth, emailEl.value.trim(), pwdEl.value);
+  } catch (err) {
+    let msg = 'Invalid email or password';
+    if (err && err.code === 'auth/too-many-requests') msg = 'Too many attempts — try again later';
+    if (err && err.code === 'auth/network-request-failed') msg = 'Network error — check your connection';
+    errEl.textContent = msg;
+    pwdEl.value = '';
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
-  _grant(r, match.u);
-  document.getElementById('loginOverlay').classList.add('hidden');
-  _showAdmin();
 }
 
-function _showAdmin() {
-  const c = _current();
-  document.getElementById('manageUsersBtn').style.display =
-    (c && c.r === 'admin') ? '' : 'none';
+async function _revoke() {
+  try {
+    await _waitFB();
+    await window.__fb.signOut(window.__fb.auth);
+  } catch {}
+  location.reload();
 }
 
-function _renderUsers() {
+async function _renderUsers() {
   const list = document.getElementById('usersList');
-  const all = _all();
-  const current = _current();
-  const seedEmails = new Set(SEED.map(x => x.u.toLowerCase()));
-
-  if (all.length === 0) {
-    list.innerHTML = '<div class="users-empty">No users</div>';
-    return;
-  }
-  list.innerHTML = '';
-  all.forEach(user => {
-    const isSeed = seedEmails.has(user.u.toLowerCase());
-    const isSelf = current && user.u.toLowerCase() === current.u.toLowerCase();
-    const row = document.createElement('div');
-    row.className = 'user-row';
-
-    const emailEl = document.createElement('div');
-    emailEl.className = 'user-email';
-    emailEl.textContent = user.u;
-    row.appendChild(emailEl);
-
-    const roleEl = document.createElement('span');
-    roleEl.className = 'user-role' + (user.r === 'admin' ? ' admin' : '');
-    roleEl.textContent = user.r || 'user';
-    row.appendChild(roleEl);
-
-    const rm = document.createElement('button');
-    rm.type = 'button';
-    rm.className = 'user-remove';
-    rm.textContent = 'Remove';
-    if (isSeed || isSelf) {
-      rm.disabled = true;
-      rm.title = isSelf ? 'Cannot remove yourself' : 'Built-in user';
-    } else {
-      rm.addEventListener('click', () => {
-        if (confirm(`Remove ${user.u}?`)) {
-          const stored = _loadU().filter(x => x.u.toLowerCase() !== user.u.toLowerCase());
-          _saveU(stored);
-          _renderUsers();
-        }
-      });
+  list.innerHTML = '<div class="users-empty">Loading…</div>';
+  try {
+    await _waitFB();
+    const { db, collection, getDocs } = window.__fb;
+    const snap = await getDocs(collection(db, 'users'));
+    const docs = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    if (docs.length === 0) {
+      list.innerHTML = '<div class="users-empty">No users</div>';
+      return;
     }
-    row.appendChild(rm);
-    list.appendChild(row);
-  });
+    docs.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+    list.innerHTML = '';
+    docs.forEach(u => {
+      const isSelf = _currentUser && u.uid === _currentUser.uid;
+      const isPrimaryAdmin = (u.email || '').toLowerCase() === FB_ADMIN_EMAIL;
+      const row = document.createElement('div');
+      row.className = 'user-row';
+      const emailEl = document.createElement('div');
+      emailEl.className = 'user-email';
+      emailEl.textContent = u.email || '—';
+      row.appendChild(emailEl);
+      const roleEl = document.createElement('span');
+      roleEl.className = 'user-role' + (u.role === 'admin' ? ' admin' : '');
+      roleEl.textContent = u.role || 'user';
+      row.appendChild(roleEl);
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.className = 'user-remove';
+      rm.textContent = 'Remove';
+      if (isSelf || isPrimaryAdmin) {
+        rm.disabled = true;
+        rm.title = isSelf ? 'Cannot remove yourself' : 'Primary admin';
+      } else {
+        rm.addEventListener('click', async () => {
+          if (!confirm(`Remove access for ${u.email}?`)) return;
+          try {
+            await window.__fb.deleteDoc(window.__fb.doc(window.__fb.db, 'users', u.uid));
+            _renderUsers();
+          } catch (err) {
+            alert('Failed to remove user');
+          }
+        });
+      }
+      row.appendChild(rm);
+      list.appendChild(row);
+    });
+  } catch (err) {
+    list.innerHTML = '<div class="users-empty">Failed to load users</div>';
+  }
 }
 
 async function _addUser(e) {
@@ -1628,59 +1626,41 @@ async function _addUser(e) {
   const roleEl = document.getElementById('newUserRole');
   const errEl = document.getElementById('addUserError');
   errEl.textContent = '';
-
-  const email = emailEl.value.trim().toLowerCase();
+  const email = emailEl.value.trim();
   const pwd = pwdEl.value;
-  const role = roleEl.value;
-
-  if (!email || !pwd) {
-    errEl.textContent = 'Email and password required';
-    return;
-  }
-  if (pwd.length < 6) {
-    errEl.textContent = 'Password must be at least 6 characters';
-    return;
-  }
-  if (_all().some(x => x.u.toLowerCase() === email)) {
-    errEl.textContent = 'A user with that email already exists';
-    return;
-  }
-
-  const k = await _d(pwd);
-  const stored = _loadU();
-  stored.push({ u: email, k, r: role });
-  _saveU(stored);
-
-  emailEl.value = '';
-  pwdEl.value = '';
-  roleEl.value = 'user';
-  _renderUsers();
-}
-
-async function _copyUsers() {
-  await _pre;
-  const payload = _all().map(u => ({ u: u.u, k: u.k, r: u.r === 'admin' ? 'admin' : 'user' }));
-  const text = JSON.stringify(payload, null, 2);
-  const btn = document.getElementById('copyUsersBtn');
-  const original = btn.textContent;
+  const role = roleEl.value === 'admin' ? 'admin' : 'user';
+  if (!email || !pwd) { errEl.textContent = 'Email and password required'; return; }
+  if (pwd.length < 6) { errEl.textContent = 'Password must be at least 6 characters'; return; }
+  const submitBtn = document.querySelector('#addUserForm button[type=submit]');
+  if (submitBtn) submitBtn.disabled = true;
+  let secondary;
   try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(text);
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    btn.textContent = 'Copied!';
+    await _waitFB();
+    const fb = window.__fb;
+    secondary = fb.initializeApp(fb.firebaseConfig, 'secondary-' + Date.now());
+    const sAuth = fb.getAuth(secondary);
+    const cred = await fb.createUserWithEmailAndPassword(sAuth, email, pwd);
+    await fb.setDoc(fb.doc(fb.db, 'users', cred.user.uid), {
+      email: cred.user.email,
+      role,
+      createdAt: Date.now()
+    });
+    try { await fb.signOut(sAuth); } catch {}
+    emailEl.value = '';
+    pwdEl.value = '';
+    roleEl.value = 'user';
+    _renderUsers();
   } catch (err) {
-    btn.textContent = 'Copy failed';
+    let msg = 'Failed to add user';
+    if (err && err.code === 'auth/email-already-in-use') msg = 'That email already has an account';
+    if (err && err.code === 'auth/invalid-email') msg = 'Invalid email address';
+    if (err && err.code === 'auth/weak-password') msg = 'Password too weak';
+    if (err && err.code === 'permission-denied') msg = 'You do not have permission';
+    errEl.textContent = msg;
+  } finally {
+    if (secondary) { try { await window.__fb.deleteApp(secondary); } catch {} }
+    if (submitBtn) submitBtn.disabled = false;
   }
-  setTimeout(() => { btn.textContent = original; }, 1800);
 }
 
 document.getElementById('loginForm').addEventListener('submit', _submit);
@@ -1698,14 +1678,39 @@ document.getElementById('usersModal').addEventListener('click', (e) => {
   }
 });
 document.getElementById('addUserForm').addEventListener('submit', _addUser);
-document.getElementById('copyUsersBtn').addEventListener('click', _copyUsers);
 
-if (_has()) {
-  document.getElementById('loginOverlay').classList.add('hidden');
-  _showAdmin();
-} else {
-  setTimeout(() => document.getElementById('loginEmail').focus(), 50);
-}
+(async function initAuth() {
+  await _waitFB();
+  window.__fbOnAuth(async (u) => {
+    const overlay = document.getElementById('loginOverlay');
+    const errEl = document.getElementById('loginError');
+    if (!u) {
+      _currentUser = null;
+      overlay.classList.remove('hidden');
+      _showAdmin();
+      setTimeout(() => {
+        const el = document.getElementById('loginEmail');
+        if (el) el.focus();
+      }, 50);
+      return;
+    }
+    try {
+      const data = await _loadRole(u);
+      if (!data) {
+        errEl.textContent = 'Access not granted for this account';
+        try { await window.__fb.signOut(window.__fb.auth); } catch {}
+        return;
+      }
+      _currentUser = { uid: u.uid, email: u.email, role: data.role };
+      errEl.textContent = '';
+      overlay.classList.add('hidden');
+      _showAdmin();
+    } catch (err) {
+      errEl.textContent = 'Failed to verify access';
+      try { await window.__fb.signOut(window.__fb.auth); } catch {}
+    }
+  });
+})();
 
 // ============ CLINICS ============
 const VICTORY_LABEL = 'Victory Low Profile MBT 022';

@@ -1227,6 +1227,44 @@ const state = {
   cart: new Map(), // key = `${tooth}-${system}`, value = {tooth, system, code, qty}
 };
 
+// ============ PERSISTENCE ============
+const STORAGE_KEY = 'bracketSelector.v1';
+
+function saveState() {
+  try {
+    const data = {
+      system: state.system,
+      cart: Array.from(state.cart.entries()),
+      clinicId: document.getElementById('clinicSelect')?.value || ''
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) { /* quota full or storage disabled — silently ignore */ }
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.system === 'Victory' || data.system === 'Clarity') {
+      state.system = data.system;
+      document.querySelectorAll('.system-toggle button').forEach(b => {
+        b.classList.toggle('active', b.dataset.system === data.system);
+      });
+    }
+    if (Array.isArray(data.cart)) {
+      state.cart = new Map(data.cart);
+    }
+    if (data.clinicId) {
+      const sel = document.getElementById('clinicSelect');
+      if (sel) {
+        sel.value = data.clinicId;
+        sel.dispatchEvent(new Event('change'));
+      }
+    }
+  } catch (e) { /* corrupted — ignore */ }
+}
+
 // ============ RENDER ARCH ============
 function renderArch() {
   const upper = document.getElementById('upperArch');
@@ -1408,6 +1446,8 @@ function renderCart() {
   document.getElementById('exportPdfBtn').disabled = uniqueCount === 0;
   document.getElementById('emailPdfBtn').disabled = uniqueCount === 0;
   document.getElementById('clearCartBtn').disabled = uniqueCount === 0;
+
+  saveState();
 }
 
 // ============ QUICK ACTIONS ============
@@ -1747,6 +1787,7 @@ document.querySelectorAll('.system-toggle button').forEach(b => {
     b.classList.add('active');
     state.system = b.dataset.system;
     renderArch();
+    renderCart();
   });
 });
 
@@ -1783,10 +1824,12 @@ function populateClinics() {
       addrEl.textContent = '—';
       addrEl.classList.add('empty');
     }
+    saveState();
   });
 }
 populateClinics();
 
+loadState();
 renderArch();
 renderCart();
 </script>

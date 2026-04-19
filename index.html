@@ -1631,7 +1631,9 @@ ${itemsList}
 Thank you,
 Dr. Alain Brault`;
 
-  const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  // iOS Mail drops LF-only newlines in mailto: bodies; CRLF preserves them on both platforms.
+  const bodyCRLF = body.replace(/\n/g, '\r\n');
+  const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyCRLF)}`;
   window.location.href = mailto;
   showToast('Opening email draft…');
 }

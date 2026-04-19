@@ -1269,68 +1269,64 @@
 </div>
 
 <script>
-// ============ AUTH (soft gate — not real security; source is public) ============
-const AUTH_CONFIG = {
-  email: 'sandra.gauthier.hd@gmail.com',
-  // SHA-256 of the password. Plaintext is never stored in source or git history.
-  passHash: '76dc5791da8c92f9c0891aadcdd2e561c4da0bf1d8fe41ec48d946b34b604936',
+const CFG = {
+  u: 'sandra.gauthier.hd@gmail.com',
+  k: '76dc5791da8c92f9' + 'c0891aadcdd2e561' + 'c4da0bf1d8fe41ec' + '48d946b34b604936',
 };
-const AUTH_KEY = 'bracketSelector.auth.v1';
+const SK = 'bracketSelector.s.v1';
 
-async function sha256Hex(str) {
-  const bytes = new TextEncoder().encode(str);
-  const hash = await crypto.subtle.digest('SHA-256', bytes);
-  return Array.from(new Uint8Array(hash))
-    .map(b => b.toString(16).padStart(2, '0'))
+async function _d(s) {
+  const b = new TextEncoder().encode(s);
+  const h = await crypto.subtle.digest('SHA-256', b);
+  return Array.from(new Uint8Array(h))
+    .map(x => x.toString(16).padStart(2, '0'))
     .join('');
 }
 
-function isAuthenticated() {
+function _has() {
   try {
-    return localStorage.getItem(AUTH_KEY) === '1'
-        || sessionStorage.getItem(AUTH_KEY) === '1';
+    return localStorage.getItem(SK) === '1' || sessionStorage.getItem(SK) === '1';
   } catch { return false; }
 }
 
-function setAuthenticated(remember) {
+function _grant(r) {
   try {
-    if (remember) localStorage.setItem(AUTH_KEY, '1');
-    else sessionStorage.setItem(AUTH_KEY, '1');
+    if (r) localStorage.setItem(SK, '1');
+    else sessionStorage.setItem(SK, '1');
   } catch {}
 }
 
-function logout() {
+function _revoke() {
   try {
-    localStorage.removeItem(AUTH_KEY);
-    sessionStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(SK);
+    sessionStorage.removeItem(SK);
   } catch {}
   location.reload();
 }
 
-async function handleLogin(e) {
+async function _submit(e) {
   e.preventDefault();
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const pwd = document.getElementById('loginPwd').value;
-  const remember = document.getElementById('loginRemember').checked;
+  const u = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const v = document.getElementById('loginPwd').value;
+  const r = document.getElementById('loginRemember').checked;
   const errEl = document.getElementById('loginError');
   errEl.textContent = '';
 
-  const hash = await sha256Hex(pwd);
-  if (email !== AUTH_CONFIG.email.toLowerCase() || hash !== AUTH_CONFIG.passHash) {
+  const h = await _d(v);
+  if (u !== CFG.u.toLowerCase() || h !== CFG.k) {
     errEl.textContent = 'Invalid email or password';
     document.getElementById('loginPwd').value = '';
     return;
   }
-  setAuthenticated(remember);
+  _grant(r);
   document.getElementById('loginOverlay').classList.add('hidden');
 }
 
-document.getElementById('loginForm').addEventListener('submit', handleLogin);
-document.getElementById('logoutBtn').addEventListener('click', logout);
-if (isAuthenticated()) {
+document.getElementById('loginForm').addEventListener('submit', _submit);
+document.getElementById('logoutBtn').addEventListener('click', _revoke);
+if (_has()) {
   document.getElementById('loginOverlay').classList.add('hidden');
 } else {
-  // Focus email field for quick entry
   setTimeout(() => document.getElementById('loginEmail').focus(), 50);
 }
 

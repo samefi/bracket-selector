@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Digital Bonding Bracket Selector</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --ink: #1a1f2b;
+    --ink-soft: #3d4657;
+    --muted: #8a8577;
+    --line: #d6d0bf;
+    --paper: #faf7f0;
+    --accent: #c73e2c;
+    --accent-soft: #e8a89e;
+    --gold: #b8903a;
+    --victory: #2a6f97;
+    --clarity: #6a9c7d;
+    --shadow: 0 1px 2px rgba(26,31,43,.04), 0 4px 12px rgba(26,31,43,.06);
+    --shadow-lg: 0 2px 4px rgba(26,31,43,.06), 0 20px 40px rgba(26,31,43,.10);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    font-weight: 400;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(199,62,44,0.04), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(42,111,151,0.04), transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 28px 80px;
+  }
+
+  /* ================ HEADER ================ */
+  header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 32px;
+  }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand-mark {
+    width: 52px; height: 52px;
+    background: #e60012;
+    color: #ffffff;
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-weight: 900;
+    font-size: 24px;
+    letter-spacing: -1.5px;
+    font-style: italic;
+  }
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 34px;
+    letter-spacing: -0.5px;
+    line-height: 1;
+    font-style: italic;
+  }
+  .brand h1 em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .brand .sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .top-actions { display: flex; gap: 10px; align-items: center; }
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+  }
+
+  /* ================ LAYOUT ================ */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 28px;
+  }
+  @media (max-width: 960px) {
+    .layout { grid-template-columns: 1fr; }
+    .cart { position: static !important; }
+  }
+
+  /* ================ MOBILE ADAPTATIONS ================ */
+  @media (max-width: 640px) {
+    .app { padding: 20px 14px 60px; }
+
+    /* Header — stack brand + badge, allow wrapping */
+    header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .brand { gap: 12px; }
+    .brand-mark { width: 42px; height: 42px; font-size: 18px; }
+    .brand h1 { font-size: 22px; }
+    .brand .sub { font-size: 9px; letter-spacing: 1.5px; }
+
+    /* Panel — reduce padding */
+    .panel { padding: 18px 14px; }
+    .panel-title { font-size: 17px; }
+
+    /* Doctor signature — compress */
+    .doctor-name { font-size: 18px; }
+
+    /* Order meta — stack vertically on small screens */
+    .order-meta {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    /* System toggle — allow wrap, reduce spacing */
+    .system-toggle {
+      width: 100%;
+      flex-direction: column;
+    }
+    .system-toggle button {
+      padding: 11px 14px;
+      font-size: 10.5px;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+
+    /* Arch — break into per-quadrant rows */
+    .arch-container { padding: 14px 0; }
+    .arch {
+      flex-wrap: wrap;
+      gap: 2px;
+      justify-content: center;
+      row-gap: 10px;
+    }
+    .quadrant-divider {
+      width: 100%;
+      flex-basis: 100%;
+      height: 1px;
+      background: var(--line);
+      opacity: 1;
+      margin: 2px 0;
+    }
+    .tooth { min-width: 38px; }
+    .tooth-btn {
+      width: 36px;
+      height: 46px;
+      font-size: 10px;
+    }
+    .tooth-code { font-size: 7.5px; letter-spacing: -0.2px; }
+    .unique-tag { width: 12px; height: 12px; font-size: 8px; top: -5px; left: -5px; }
+
+    /* Hover transforms disabled on touch (prevents stuck hover state) */
+    .tooth-btn:hover { transform: none; box-shadow: none; border-color: var(--line); }
+    .tooth-btn.selected:hover,
+    .tooth-btn.selected-clarity:hover,
+    .tooth-btn.unique:hover { transform: none; }
+
+    /* Quick actions — wrap onto multiple rows */
+    .quick-actions { gap: 6px; }
+    .quick-btn {
+      padding: 8px 11px;
+      font-size: 9px;
+      letter-spacing: 1px;
+      flex: 1 1 auto;
+    }
+
+    /* Legend — allow wrap */
+    .legend {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .legend-item { font-size: 9px; }
+
+    /* Cart items — 2-row layout on mobile (info + remove on top, qty below) */
+    .cart-item {
+      grid-template-columns: auto 1fr auto;
+      grid-template-rows: auto auto;
+      gap: 6px 10px;
+      padding: 10px 2px;
+    }
+    .cart-item .cart-tooth-tag {
+      grid-column: 1;
+      grid-row: 1 / 3;
+      align-self: center;
+    }
+    .cart-item .cart-info {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .cart-item .remove-btn {
+      grid-column: 3;
+      grid-row: 1;
+      align-self: start;
+    }
+    .cart-item .qty-control {
+      grid-column: 2 / 4;
+      grid-row: 2;
+      justify-self: end;
+    }
+    .cart-tooth-tag { width: 32px; height: 32px; font-size: 11px; }
+
+    /* Summary — tighter */
+    .summary-row { font-size: 10px; }
+    .summary-row.total { font-size: 18px; }
+
+    /* Buttons fill width and stack */
+    .cart-actions .btn { font-size: 10px; letter-spacing: 1.5px; padding: 12px 14px; }
+  }
+
+  /* Smallest phones (<380px) — push tooth sizing further down */
+  @media (max-width: 380px) {
+    .tooth { min-width: 34px; }
+    .tooth-btn { width: 32px; height: 42px; font-size: 9.5px; }
+    .tooth-code { font-size: 7px; }
+  }
+
+  /* ================ PANEL ================ */
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+  }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .panel-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+  }
+  .panel-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ================ BRACKET SYSTEM TOGGLE ================ */
+  .system-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: 22px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    overflow: hidden;
+    width: fit-content;
+  }
+  .system-toggle button {
+    background: transparent;
+    border: none;
+    padding: 10px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.8px;
+    text-transform: none;
+    cursor: pointer;
+    color: var(--ink);
+    transition: all .2s;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .system-toggle button.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .system-toggle button:not(.active):hover {
+    background: rgba(26,31,43,.05);
+  }
+
+  /* ================ PATIENT / ORDER ================ */
+  .order-meta {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* ================ DOCTOR SIGNATURE ================ */
+  .doctor-signature {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+    padding-bottom: 2px;
+  }
+  .doctor-flourish {
+    font-size: 14px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .doctor-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .doctor-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .doctor-name {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: -0.3px;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .doctor-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--line), transparent);
+  }
+  .field { display: flex; flex-direction: column; }
+  .field label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .field input {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    transition: border-color .2s;
+  }
+  .field input:focus { border-color: var(--ink); }
+  .field select {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg);
+    color: var(--ink);
+    outline: none;
+    transition: border-color .2s;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%231a1f2b' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+  .field select:focus { border-color: var(--ink); }
+  .field-static {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg);
+    color: var(--ink);
+    font-style: italic;
+    position: relative;
+  }
+  .field-static::after {
+    content: '◆';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 8px;
+    color: var(--gold);
+  }
+  .field-address {
+    font-size: 12px;
+    line-height: 1.3;
+    font-style: normal;
+    color: var(--ink-soft);
+  }
+  .field-address.empty {
+    color: var(--muted);
+    font-style: italic;
+  }
+  .field-address::after { content: none; }
+
+  /* ================ DENTAL ARCH ================ */
+  .arch-container { position: relative; padding: 20px 8px; }
+  .arch-label {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .arch-divider {
+    text-align: center;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    color: var(--muted);
+    font-size: 13px;
+    padding: 14px 0;
+    position: relative;
+  }
+  .arch-divider::before, .arch-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: calc(50% - 60px);
+    height: 1px;
+    background: var(--line);
+  }
+  .arch-divider::before { left: 0; }
+  .arch-divider::after { right: 0; }
+
+  .arch {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .quadrant-divider {
+    width: 1px;
+    height: 60px;
+    background: var(--ink);
+    opacity: .3;
+    margin: 0 4px;
+  }
+  .tooth {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 48px;
+  }
+  .tooth-btn {
+    width: 44px;
+    height: 54px;
+    border: 1.5px solid var(--line);
+    background: var(--bg);
+    border-radius: 8px 8px 6px 6px;
+    cursor: pointer;
+    position: relative;
+    transition: all .18s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-soft);
+  }
+  .tooth-btn:hover {
+    border-color: var(--ink);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(26,31,43,.1);
+  }
+  .tooth-btn.selected {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .tooth-btn.selected-clarity {
+    background: #7eb8d9;
+    color: #ffffff;
+    border-color: #5a9cc2;
+  }
+  .tooth-btn.selected::after {
+    content: '';
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    border: 2px solid var(--paper);
+  }
+  .tooth-btn.selected-clarity::after {
+    background: #2a6f97;
+  }
+  .tooth-btn.no-stock {
+    background: repeating-linear-gradient(
+      45deg, var(--bg), var(--bg) 3px,
+      var(--line) 3px, var(--line) 4px);
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: .6;
+  }
+  .tooth-btn.no-stock:hover {
+    transform: none;
+    border-color: var(--line);
+    box-shadow: none;
+  }
+  .tooth-btn.unique {
+    border-color: var(--gold);
+    border-style: double;
+    border-width: 3px;
+  }
+  .tooth-btn.unique.selected {
+    background: var(--ink);
+    border-color: var(--gold);
+  }
+  .unique-tag {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 14px;
+    height: 14px;
+    background: var(--gold);
+    color: var(--paper);
+    border-radius: 50%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--paper);
+    letter-spacing: 0;
+  }
+  .legend-swatch.unique-swatch {
+    background: var(--gold);
+    color: var(--paper);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    border-color: var(--gold);
+  }
+  .tooth-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+  .tooth-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8.5px;
+    color: var(--ink-soft);
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  /* ================ QUICK ACTIONS ================ */
+  .quick-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .quick-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    padding: 7px 14px;
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: all .15s;
+  }
+  .quick-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+    background: var(--bg);
+  }
+
+  /* ================ LEGEND ================ */
+  .legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--line);
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .legend-swatch {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    border: 1.5px solid var(--line);
+  }
+  .legend-swatch.selected { background: var(--ink); border-color: var(--ink); }
+  .legend-swatch.available { background: var(--bg); }
+  .legend-swatch.unavailable {
+    background: repeating-linear-gradient(45deg, var(--bg), var(--bg) 3px, var(--line) 3px, var(--line) 4px);
+  }
+
+  /* ================ CART ================ */
+  .cart { position: sticky; top: 24px; }
+  .cart-items {
+    max-height: 480px;
+    overflow-y: auto;
+    margin: 0 -8px;
+    padding: 0 8px;
+  }
+  .cart-items::-webkit-scrollbar { width: 4px; }
+  .cart-items::-webkit-scrollbar-thumb { background: var(--line); border-radius: 2px; }
+
+  .cart-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-style: italic;
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+  }
+  .cart-empty-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    opacity: .4;
+  }
+
+  .cart-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-tooth-tag {
+    width: 36px; height: 36px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .cart-info { min-width: 0; }
+  .cart-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .cart-system {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .qty-btn {
+    width: 24px; height: 24px;
+    border: none;
+    background: var(--bg);
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    transition: background .15s;
+  }
+  .qty-btn:hover { background: var(--line); }
+  .qty-input {
+    width: 32px;
+    height: 24px;
+    text-align: center;
+    border: none;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    background: var(--paper);
+    color: var(--ink);
+    outline: none;
+  }
+  .qty-input::-webkit-inner-spin-button,
+  .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+  .remove-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+    line-height: 1;
+    transition: color .15s;
+  }
+  .remove-btn:hover { color: var(--accent); }
+
+  /* ================ CART SUMMARY ================ */
+  .cart-summary {
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 2px solid var(--ink);
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .summary-row.total {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    text-transform: none;
+    color: var(--ink);
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+  }
+  .summary-row.total span:first-child { font-style: italic; font-weight: 300; }
+
+  .cart-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .btn {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(199,62,44,.3);
+  }
+  .btn-primary:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--ink);
+    color: var(--ink);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .btn-secondary:disabled { opacity: .4; cursor: not-allowed; border-color: var(--line); color: var(--muted); }
+  .btn-email {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .btn-email::before {
+    content: '✉';
+    font-size: 14px;
+    letter-spacing: 0;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 8px 18px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--accent);
+  }
+  .btn-ghost:disabled { opacity: .3; cursor: not-allowed; }
+
+  /* ================ TOAST ================ */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 12px 22px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    opacity: 0;
+    transition: all .3s ease;
+    pointer-events: none;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="brand">
+    <div class="brand-mark">3M</div>
+    <div>
+      <h1><em>Digital Bonding</em> Bracket Selector</h1>
+      <div class="sub">Orthodontic Ordering · Dr. Alain Brault</div>
+    </div>
+  </div>
+  <div class="top-actions">
+    <span class="badge" id="selectionBadge">0 Selected</span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <!-- ============ LEFT: SELECTION PANEL ============ -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Tooth Selection</h2>
+      <span class="panel-meta">FDI Notation</span>
+    </div>
+
+    <!-- Doctor signature -->
+    <div class="doctor-signature">
+      <span class="doctor-flourish">✦</span>
+      <div class="doctor-text">
+        <span class="doctor-label">Ordering Doctor</span>
+        <span class="doctor-name">Dr. Alain Brault</span>
+      </div>
+      <span class="doctor-rule"></span>
+    </div>
+
+    <!-- Order meta -->
+    <div class="order-meta">
+      <div class="field">
+        <label>Clinic</label>
+        <select id="clinicSelect">
+          <option value="">— Select clinic —</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Address</label>
+        <div class="field-static field-address" id="addressStatic">—</div>
+      </div>
+    </div>
+
+    <!-- System toggle -->
+    <div class="system-toggle" role="tablist">
+      <button class="active" data-system="Victory">Victory LP MBT 022</button>
+      <button data-system="Clarity">Clarity Adv. MBT 022</button>
+    </div>
+
+    <!-- Dental arch -->
+    <div class="arch-container">
+      <div class="arch-label">Upper · Maxillary</div>
+      <div class="arch" id="upperArch"></div>
+
+      <div class="arch-divider"><span>occlusal plane</span></div>
+
+      <div class="arch" id="lowerArch"></div>
+      <div class="arch-label" style="margin-top: 8px;">Lower · Mandibular</div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="quick-actions">
+      <button class="quick-btn" data-action="all">Select All</button>
+      <button class="quick-btn" data-action="upper">Select Upper</button>
+      <button class="quick-btn" data-action="lower">Select Lower</button>
+      <button class="quick-btn" data-action="anterior">Anteriors Only</button>
+      <button class="quick-btn" data-action="molars6">All #6 Molars</button>
+      <button class="quick-btn" data-action="molars7">All #7 Molars</button>
+      <button class="quick-btn" data-action="clear">Clear</button>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch available"></div> Available</div>
+      <div class="legend-item"><div class="legend-swatch selected"></div> Selected</div>
+      <div class="legend-item"><div class="legend-swatch unique-swatch">V</div> Victory Series Superior Fit Buccal Tubes MBT</div>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT: CART ============ -->
+  <aside class="panel cart">
+    <div class="panel-header">
+      <h2 class="panel-title">Cart</h2>
+      <span class="panel-meta" id="cartMeta">0 Items</span>
+    </div>
+
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">
+        <div class="cart-empty-icon">⚘</div>
+        Select teeth from the arch<br>to add brackets to the cart
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <div class="summary-row"><span>Line Items</span><span id="uniqueCount">0</span></div>
+      <div class="summary-row"><span>Victory LP MBT Qty</span><span id="victoryQty">0</span></div>
+      <div class="summary-row"><span>Clarity Adv. MBT Qty</span><span id="clarityQty">0</span></div>
+      <div class="summary-row"><span>Victory SFBT MBT Qty</span><span id="uniqueQty">0</span></div>
+      <div class="summary-row total"><span>Total Items</span><span id="totalQty">0</span></div>
+    </div>
+
+    <div class="cart-actions">
+      <button class="btn btn-primary" id="exportPdfBtn" disabled>Save as PDF</button>
+      <button class="btn btn-secondary btn-email" id="emailPdfBtn" disabled>Email Order</button>
+      <button class="btn btn-ghost" id="clearCartBtn" disabled>Empty Cart</button>
+    </div>
+  </aside>
+
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ============ CLINICS ============
+const VICTORY_LABEL = 'Victory Low Profile MBT 022';
+const VICTORY_LABEL_SHORT = 'Victory LP MBT 022';
+const CLARITY_LABEL = 'Clarity Advanced Ceramic MBT 022';
+const CLARITY_LABEL_SHORT = 'Clarity Adv. MBT 022';
+const UNIQUE_LABEL = 'Victory Series Superior Fit Buccal Tubes MBT';
+// Shorter form used in tight UI spots (cart rows)
+const UNIQUE_LABEL_SHORT = 'Victory SFBT MBT';
+
+// Returns a display label for a system value
+function systemLabel(system, short = false) {
+  if (system === 'Victory') return short ? VICTORY_LABEL_SHORT : VICTORY_LABEL;
+  if (system === 'Clarity') return short ? CLARITY_LABEL_SHORT : CLARITY_LABEL;
+  if (system === 'Unique')  return short ? UNIQUE_LABEL_SHORT  : UNIQUE_LABEL;
+  return system;
+}
+
+// Consolidates items sharing the same part number (code) within the same system.
+// Sums their quantities and combines their tooth numbers into a sorted list.
+// Each tooth also carries its own qty so callers can show "14 (×2)".
+// Returns: { system, code, qty, teeth: [{tooth, qty}] }
+function consolidateByPartNumber(items) {
+  const byKey = new Map(); // key = `${system}::${code}`
+  items.forEach(i => {
+    const key = `${i.system}::${i.code}`;
+    if (!byKey.has(key)) {
+      byKey.set(key, { system: i.system, code: i.code, qty: 0, teethMap: new Map() });
+    }
+    const entry = byKey.get(key);
+    entry.qty += i.qty;
+    // accumulate per-tooth qty
+    entry.teethMap.set(i.tooth, (entry.teethMap.get(i.tooth) || 0) + i.qty);
+  });
+  const out = Array.from(byKey.values()).map(e => {
+    const teeth = Array.from(e.teethMap.entries())
+      .sort((a,b) => a[0] - b[0])
+      .map(([tooth, qty]) => ({ tooth, qty }));
+    return { system: e.system, code: e.code, qty: e.qty, teeth };
+  });
+  // Sort entries by first tooth number for deterministic order within each group
+  out.sort((a,b) => a.teeth[0].tooth - b.teeth[0].tooth);
+  return out;
+}
+
+// Format a tooth entry as either "14" (qty 1) or "14 (×2)" (qty > 1)
+function formatTooth(entry) {
+  return entry.qty > 1 ? `${entry.tooth} (×${entry.qty})` : String(entry.tooth);
+}
+
+const CLINICS = [
+  {
+    id: '921884',
+    name: 'Montréal (Plateau)',
+    address: '468 Bd Saint-Joseph E, Montréal, Quebec H2J 1J7, CA',
+    phone: '514-845-0550',
+    email: 'info@monorthosurleplateau.ca'
+  },
+  {
+    id: '303360',
+    name: 'Mont-Tremblant',
+    address: '1200 Rue de St. Jovite, Mont-Tremblant, Quebec J8E 3J9, CA',
+    phone: '514-712-0177',
+    email: 'drbrault@colaval.com'
+  },
+  {
+    id: '1565166',
+    name: 'Mont-Laurier',
+    address: '304 Rue de la Madone, Mont-Laurier, Quebec J9L 1R7, CA',
+    phone: '514-712-0177',
+    email: 'alainbrault@me.com'
+  },
+  {
+    id: '80234',
+    name: 'Montréal (Laurier O)',
+    address: '1014 Av. Laurier O, Montréal, Quebec H2V 2K8, CA',
+    phone: '514-712-0177',
+    email: 'alainbrault@me.com'
+  },
+  {
+    id: '1400536',
+    name: 'Longueuil',
+    address: '1555 Bd des Promenades, Longueuil, Quebec J3Y 5K2, CA',
+    phone: '450-286-0795',
+    email: 'gestion@lineasmile.com'
+  },
+];
+
+// ============ BRACKET CATALOG (from Bracket_3M.xlsx) ============
+// Molars (16,17,26,27,36,37,46,47) are Victory Series Superior Fit Buccal Tubes MBT
+// — same part number for both Victory and Clarity systems
+const CATALOG = {
+  11: {Victory:'4024-876',  Clarity:'4006-302'},
+  12: {Victory:'4024-878',  Clarity:'4006-306'},
+  13: {Victory:'4024-874',  Clarity:'4006-310'},
+  14: {Victory:'4024-890',  Clarity:'4006-311'},
+  15: {Victory:'4024-890',  Clarity:'4006-311'},
+  16: {Victory:'4069-6314', Clarity:'4069-6314', unique:true},
+  17: {Victory:'4069-4114', Clarity:'4069-4114', unique:true},
+  21: {Victory:'4024-875',  Clarity:'4006-301'},
+  22: {Victory:'4024-877',  Clarity:'4006-305'},
+  23: {Victory:'4024-873',  Clarity:'4006-309'},
+  24: {Victory:'4024-890',  Clarity:'4006-311'},
+  25: {Victory:'4024-890',  Clarity:'4006-311'},
+  26: {Victory:'4069-6303', Clarity:'4069-6303', unique:true},
+  27: {Victory:'4069-4103', Clarity:'4069-4103', unique:true},
+  31: {Victory:'4024-892',  Clarity:'4006-350'},
+  32: {Victory:'4024-892',  Clarity:'4006-350'},
+  33: {Victory:'4024-8711', Clarity:'4006-353'},
+  34: {Victory:'4024-895',  Clarity:'4006-355'},
+  35: {Victory:'4024-897',  Clarity:'4006-359'},
+  36: {Victory:'4069-6403', Clarity:'4069-6403', unique:true},
+  37: {Victory:'4069-4203', Clarity:'4069-4203', unique:true},
+  41: {Victory:'4024-892',  Clarity:'4006-350'},
+  42: {Victory:'4024-892',  Clarity:'4006-350'},
+  43: {Victory:'4024-8721', Clarity:'4006-354'},
+  44: {Victory:'4024-896',  Clarity:'4006-356'},
+  45: {Victory:'4024-898',  Clarity:'4006-360'},
+  46: {Victory:'4069-6414', Clarity:'4069-6414', unique:true},
+  47: {Victory:'4069-4214', Clarity:'4069-4214', unique:true},
+};
+
+// FDI notation: teeth ordered left-to-right as seen in patient's mouth
+// Upper: 17-16-15-14-13-12-11 | 21-22-23-24-25-26-27
+// Lower: 47-46-45-44-43-42-41 | 31-32-33-34-35-36-37
+const UPPER_LEFT  = [17,16,15,14,13,12,11];
+const UPPER_RIGHT = [21,22,23,24,25,26,27];
+const LOWER_LEFT  = [47,46,45,44,43,42,41];
+const LOWER_RIGHT = [31,32,33,34,35,36,37];
+
+const ANTERIORS = [13,12,11,21,22,23,33,32,31,41,42,43];
+
+// ============ STATE ============
+const state = {
+  system: 'Victory',
+  cart: new Map(), // key = `${tooth}-${system}`, value = {tooth, system, code, qty}
+};
+
+// ============ RENDER ARCH ============
+function renderArch() {
+  const upper = document.getElementById('upperArch');
+  const lower = document.getElementById('lowerArch');
+  upper.innerHTML = '';
+  lower.innerHTML = '';
+
+  const makeTooth = (num) => {
+    const entry = CATALOG[num];
+    const isUnique = entry ? !!entry.unique : false;
+    const code = entry ? entry[state.system] : null;
+    const hasStock = !!code;
+    // Unique items share a single cart slot regardless of the current system toggle
+    const effectiveSystem = isUnique ? 'Unique' : state.system;
+    const key = `${num}-${effectiveSystem}`;
+    const isSelected = state.cart.has(key);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'tooth';
+
+    const btn = document.createElement('button');
+    btn.className = 'tooth-btn'
+      + (isSelected ? ' selected' : '')
+      + (isSelected && effectiveSystem === 'Clarity' ? ' selected-clarity' : '')
+      + (!hasStock ? ' no-stock' : '')
+      + (isUnique ? ' unique' : '');
+    btn.textContent = num;
+    btn.dataset.tooth = num;
+    btn.title = hasStock
+      ? (isUnique
+          ? `Tooth ${num} — ${code} · Victory Series Superior Fit Buccal Tubes MBT`
+          : `Tooth ${num} — ${code}`)
+      : `Tooth ${num} — Not available in ${systemLabel(state.system, true)}`;
+    if (hasStock) {
+      btn.addEventListener('click', () => toggleTooth(num));
+    }
+
+    // Small "V" badge for Victory SFBT MBT items
+    if (isUnique) {
+      const tag = document.createElement('span');
+      tag.className = 'unique-tag';
+      tag.textContent = 'V';
+      tag.title = 'Victory Series Superior Fit Buccal Tubes MBT';
+      btn.appendChild(tag);
+    }
+
+    const numLabel = document.createElement('span');
+    numLabel.className = 'tooth-code';
+    numLabel.textContent = code || '—';
+
+    wrap.appendChild(btn);
+    wrap.appendChild(numLabel);
+    return wrap;
+  };
+
+  UPPER_LEFT.forEach(n => upper.appendChild(makeTooth(n)));
+  const upDiv = document.createElement('div'); upDiv.className = 'quadrant-divider';
+  upper.appendChild(upDiv);
+  UPPER_RIGHT.forEach(n => upper.appendChild(makeTooth(n)));
+
+  LOWER_LEFT.forEach(n => lower.appendChild(makeTooth(n)));
+  const loDiv = document.createElement('div'); loDiv.className = 'quadrant-divider';
+  lower.appendChild(loDiv);
+  LOWER_RIGHT.forEach(n => lower.appendChild(makeTooth(n)));
+}
+
+// ============ CART ACTIONS ============
+function toggleTooth(num) {
+  const entry = CATALOG[num];
+  if (!entry) return;
+  const isUnique = !!entry.unique;
+  const code = entry[state.system];
+  if (!code) {
+    showToast(`Tooth ${num} not available in ${systemLabel(state.system, true)}`);
+    return;
+  }
+  const effectiveSystem = isUnique ? 'Unique' : state.system;
+  const key = `${num}-${effectiveSystem}`;
+  if (state.cart.has(key)) {
+    state.cart.delete(key);
+  } else {
+    state.cart.set(key, { tooth: num, system: effectiveSystem, code, qty: 1 });
+  }
+  renderArch();
+  renderCart();
+}
+
+function updateQty(key, qty) {
+  const item = state.cart.get(key);
+  if (!item) return;
+  qty = Math.max(1, Math.min(999, parseInt(qty) || 1));
+  item.qty = qty;
+  renderCart();
+}
+
+function removeItem(key) {
+  state.cart.delete(key);
+  renderArch();
+  renderCart();
+}
+
+function clearCart() {
+  if (state.cart.size === 0) return;
+  if (confirm('Empty the cart? This will remove all selected brackets.')) {
+    state.cart.clear();
+    renderArch();
+    renderCart();
+    showToast('Cart cleared');
+  }
+}
+
+// ============ RENDER CART ============
+function renderCart() {
+  const container = document.getElementById('cartItems');
+  const items = Array.from(state.cart.values())
+    .sort((a,b) => a.tooth - b.tooth);
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">⚘</div>
+        Select teeth from the arch<br>to add brackets to the cart
+      </div>`;
+  } else {
+    container.innerHTML = items.map(item => {
+      const key = `${item.tooth}-${item.system}`;
+      return `
+        <div class="cart-item">
+          <div class="cart-tooth-tag">${item.tooth}</div>
+          <div class="cart-info">
+            <div class="cart-code">${item.code}</div>
+            <div class="cart-system">${systemLabel(item.system, true)}</div>
+          </div>
+          <div class="qty-control">
+            <button class="qty-btn" data-qty-minus="${key}">−</button>
+            <input type="number" class="qty-input" value="${item.qty}" min="1" max="999" data-qty-input="${key}" />
+            <button class="qty-btn" data-qty-plus="${key}">+</button>
+          </div>
+          <button class="remove-btn" data-remove="${key}" title="Remove">×</button>
+        </div>`;
+    }).join('');
+
+    // wire events
+    container.querySelectorAll('[data-qty-minus]').forEach(b => {
+      b.addEventListener('click', () => {
+        const k = b.dataset.qtyMinus;
+        updateQty(k, state.cart.get(k).qty - 1);
+      });
+    });
+    container.querySelectorAll('[data-qty-plus]').forEach(b => {
+      b.addEventListener('click', () => {
+        const k = b.dataset.qtyPlus;
+        updateQty(k, state.cart.get(k).qty + 1);
+      });
+    });
+    container.querySelectorAll('[data-qty-input]').forEach(i => {
+      i.addEventListener('change', () => updateQty(i.dataset.qtyInput, i.value));
+    });
+    container.querySelectorAll('[data-remove]').forEach(b => {
+      b.addEventListener('click', () => removeItem(b.dataset.remove));
+    });
+  }
+
+  // summary
+  const uniqueCount = items.length;
+  const victoryQty = items.filter(i => i.system === 'Victory').reduce((s,i) => s + i.qty, 0);
+  const clarityQty = items.filter(i => i.system === 'Clarity').reduce((s,i) => s + i.qty, 0);
+  const uniqueQty  = items.filter(i => i.system === 'Unique').reduce((s,i) => s + i.qty, 0);
+  const totalQty = victoryQty + clarityQty + uniqueQty;
+
+  document.getElementById('uniqueCount').textContent = uniqueCount;
+  document.getElementById('victoryQty').textContent = victoryQty;
+  document.getElementById('clarityQty').textContent = clarityQty;
+  document.getElementById('uniqueQty').textContent = uniqueQty;
+  document.getElementById('totalQty').textContent = totalQty;
+  document.getElementById('cartMeta').textContent = `${uniqueCount} Item${uniqueCount !== 1 ? 's' : ''}`;
+  document.getElementById('selectionBadge').textContent = `${totalQty} Selected`;
+
+  document.getElementById('exportPdfBtn').disabled = uniqueCount === 0;
+  document.getElementById('emailPdfBtn').disabled = uniqueCount === 0;
+  document.getElementById('clearCartBtn').disabled = uniqueCount === 0;
+}
+
+// ============ QUICK ACTIONS ============
+function applyQuickAction(action) {
+  const selectTeeth = (teeth) => {
+    teeth.forEach(num => {
+      const entry = CATALOG[num];
+      if (!entry) return;
+      const isUnique = !!entry.unique;
+      const code = entry[state.system];
+      if (!code) return;
+      const effectiveSystem = isUnique ? 'Unique' : state.system;
+      const key = `${num}-${effectiveSystem}`;
+      if (!state.cart.has(key)) {
+        state.cart.set(key, { tooth: num, system: effectiveSystem, code, qty: 1 });
+      }
+    });
+  };
+  if (action === 'clear') {
+    // Clear items tied to the current system, plus Unique items (since they're displayed regardless)
+    for (const [k, v] of state.cart.entries()) {
+      if (v.system === state.system || v.system === 'Unique') state.cart.delete(k);
+    }
+  } else if (action === 'all') {
+    selectTeeth([...UPPER_LEFT, ...UPPER_RIGHT, ...LOWER_LEFT, ...LOWER_RIGHT]);
+  } else if (action === 'upper') {
+    selectTeeth([...UPPER_LEFT, ...UPPER_RIGHT]);
+  } else if (action === 'lower') {
+    selectTeeth([...LOWER_LEFT, ...LOWER_RIGHT]);
+  } else if (action === 'anterior') {
+    selectTeeth(ANTERIORS);
+  } else if (action === 'molars6') {
+    selectTeeth([16, 26, 36, 46]);
+  } else if (action === 'molars7') {
+    selectTeeth([17, 27, 37, 47]);
+  }
+  renderArch();
+  renderCart();
+}
+
+// ============ PDF EXPORT ============
+function exportToPDF() {
+  const items = Array.from(state.cart.values()).sort((a,b) => a.tooth - b.tooth);
+  if (items.length === 0) return;
+
+  const clinic = getSelectedClinic();
+  if (!clinic) {
+    showToast('Please select a clinic before exporting');
+    document.getElementById('clinicSelect').focus();
+    return;
+  }
+
+  const doctor     = 'Dr. Alain Brault';
+  const clinicName = clinic.name;
+  const clinicAddr = clinic.address;
+  const clinicId   = clinic.id;
+
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const timeStr = now.toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 48;
+
+  // ========= Palette (match app) =========
+  const INK = [26, 31, 43];
+  const INK_SOFT = [61, 70, 87];
+  const MUTED = [138, 133, 119];
+  const ACCENT = [199, 62, 44];
+  const GOLD = [184, 144, 58];
+  const LINE = [214, 208, 191];
+  const PAPER = [250, 247, 240];
+  const BG_SOFT = [244, 241, 234];
+
+  // ========= Title =========
+  doc.setFont('times', 'italic');
+  doc.setFontSize(32);
+  doc.setTextColor(...INK);
+  doc.text('Order Form', margin, 72);
+
+  // Small date/time line under the title
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  doc.text(`${today}  ·  ${timeStr}`, margin, 90);
+
+  // Thin divider
+  doc.setDrawColor(...LINE);
+  doc.setLineWidth(0.5);
+  doc.line(margin, 104, pageW - margin, 104);
+
+  // ========= Doctor signature block =========
+  let y = 132;
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  doc.text('ORDERING DOCTOR', margin, y);
+
+  doc.setFont('times', 'italic');
+  doc.setFontSize(20);
+  doc.setTextColor(...INK);
+  doc.text(doctor, margin, y + 22);
+
+  // Gold flourish
+  doc.setTextColor(...GOLD);
+  doc.setFont('times', 'bold');
+  doc.setFontSize(14);
+  doc.text('§', pageW - margin - 8, y + 18, { align: 'right' });
+
+  // Divider line
+  y += 36;
+  doc.setDrawColor(...LINE);
+  doc.setLineWidth(0.5);
+  doc.line(margin, y, pageW - margin, y);
+
+  // ========= Clinic block =========
+  y += 26;
+  doc.setFont('courier', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...MUTED);
+  doc.text('SHIP TO · CLINIC', margin, y);
+
+  y += 18;
+  doc.setFont('times', 'bold');
+  doc.setFontSize(15);
+  doc.setTextColor(...INK);
+  doc.text(clinicName, margin, y);
+
+  y += 18;
+  doc.setFont('times', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...INK_SOFT);
+  const addrLines = doc.splitTextToSize(clinicAddr, pageW - 2*margin);
+  doc.text(addrLines, margin, y);
+  y += addrLines.length * 14;
+
+  // ========= Section heading for order =========
+  y += 20;
+  doc.setDrawColor(...INK);
+  doc.setLineWidth(1);
+  doc.line(margin, y, margin + 24, y);
+  y += 14;
+  doc.setFont('times', 'italic');
+  doc.setFontSize(14);
+  doc.setTextColor(...INK);
+  doc.text('Order Detail', margin, y);
+  y += 14;
+
+  // ========= Items table =========
+  // Group items by system (Victory → Clarity → Unique)
+  const systemOrder = ['Victory', 'Clarity', 'Unique'];
+  const grouped = {};
+  systemOrder.forEach(s => { grouped[s] = []; });
+  items.forEach(i => {
+    if (!grouped[i.system]) grouped[i.system] = [];
+    grouped[i.system].push(i);
+  });
+
+  // Build the row list with a group header row before each group
+  const rows = [];
+  systemOrder.forEach(s => {
+    const group = grouped[s];
+    if (!group || group.length === 0) return;
+    const label = systemLabel(s);
+    // Group header row spans all 3 columns
+    rows.push([{
+      content: label,
+      colSpan: 3,
+      styles: {
+        fillColor: BG_SOFT,
+        textColor: s === 'Victory' ? [42, 111, 151]
+                 : s === 'Clarity' ? [106, 156, 125]
+                 : GOLD,
+        fontStyle: s === 'Unique' ? 'italic' : 'bold',
+        font: 'times',
+        fontSize: 12,
+        halign: 'center',
+        cellPadding: { top: 9, bottom: 9, left: 12, right: 12 },
+      }
+    }]);
+    // Item rows within the group — consolidated by part number
+    const consolidated = consolidateByPartNumber(group);
+    consolidated.forEach(e => {
+      const teethStr = e.teeth.map(formatTooth).join(', ');
+      rows.push([
+        teethStr,
+        e.code,
+        String(e.qty)
+      ]);
+    });
+  });
+
+  doc.autoTable({
+    startY: y + 6,
+    head: [['Teeth', 'Part Number', 'Qty']],
+    body: rows,
+    theme: 'plain',
+    margin: { left: margin, right: margin },
+    styles: {
+      font: 'times',
+      fontSize: 11,
+      cellPadding: { top: 7, bottom: 7, left: 10, right: 10 },
+      textColor: INK,
+      lineColor: LINE,
+      lineWidth: 0.5,
+    },
+    headStyles: {
+      font: 'courier',
+      fontStyle: 'bold',
+      fontSize: 8.5,
+      fillColor: INK,
+      textColor: PAPER,
+      cellPadding: { top: 8, bottom: 8, left: 10, right: 10 },
+      halign: 'center',
+      lineWidth: 0,
+    },
+    columnStyles: {
+      0: { cellWidth: 120, halign: 'center', font: 'courier', fontStyle: 'bold' },
+      1: { halign: 'center', font: 'courier' },
+      2: { cellWidth: 60, halign: 'center', font: 'courier', fontStyle: 'bold' },
+    },
+    didDrawPage: (data) => {
+      // Footer
+      const footY = pageH - 28;
+      doc.setDrawColor(...LINE);
+      doc.setLineWidth(0.5);
+      doc.line(margin, footY - 10, pageW - margin, footY - 10);
+      doc.setFont('courier', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(...MUTED);
+      doc.text('DIGITAL BONDING · BRACKET ORDER', margin, footY);
+      doc.text(`PAGE ${data.pageNumber}`, pageW - margin, footY, { align: 'right' });
+    },
+  });
+
+  // Save PDF
+  const filename = `Bracket_Order_${clinicId}_${today}.pdf`;
+  doc.save(filename);
+  showToast(`PDF saved: ${filename}`);
+}
+
+// ============ EMAIL ORDER (no PDF — order form goes directly in the email body) ============
+function emailOrder() {
+  const items = Array.from(state.cart.values()).sort((a,b) => a.tooth - b.tooth);
+  if (items.length === 0) return;
+
+  const clinic = getSelectedClinic();
+  if (!clinic) {
+    showToast('Please select a clinic before emailing');
+    document.getElementById('clinicSelect').focus();
+    return;
+  }
+
+  const clinicName = clinic.name;
+  const clinicAddr = clinic.address;
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+
+  // Group items by system (Victory, Clarity, Victory SFBT MBT), then consolidate
+  // by part number within each group so identical parts show as one line with summed qty
+  const systemOrder = ['Victory', 'Clarity', 'Unique'];
+  const grouped = {};
+  systemOrder.forEach(s => { grouped[s] = []; });
+  items.forEach(i => {
+    if (!grouped[i.system]) grouped[i.system] = [];
+    grouped[i.system].push(i);
+  });
+
+  // Labeled format works in both monospace and proportional fonts
+  // (columns don't align in proportional fonts, so we use labels instead)
+  const groupBlocks = systemOrder
+    .filter(s => grouped[s] && grouped[s].length > 0)
+    .map(s => {
+      const label = systemLabel(s);
+      const consolidated = consolidateByPartNumber(grouped[s]);
+      const itemLines = consolidated.map(e => {
+        const formattedTeeth = e.teeth.map(formatTooth).join(', ');
+        const teethLabel = e.teeth.length === 1
+          ? `Tooth Number: ${formattedTeeth}`
+          : `Tooth Numbers: ${formattedTeeth}`;
+        return (
+`• Part Number: ${e.code} — Qty ${e.qty}
+   ${teethLabel}`
+        );
+      }).join('\n\n');
+      return `── ${label} ──\n\n${itemLines}`;
+    });
+  const itemsList = groupBlocks.join('\n\n\n');
+
+  const subject = `Bracket Order — ${clinicName} — ${today}`;
+
+  const body =
+`ORDER FORM     ${today}
+
+
+ORDERING DOCTOR
+Dr. Alain Brault
+
+
+SHIP TO
+${clinicName}
+${clinicAddr}
+
+
+ORDER DETAILS
+
+${itemsList}
+
+
+Thank you,
+Dr. Alain Brault`;
+
+  const mailto = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  showToast('Opening email draft…');
+}
+
+// ============ TOAST ============
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ============ INIT ============
+document.querySelectorAll('.system-toggle button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.system-toggle button').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    state.system = b.dataset.system;
+    renderArch();
+  });
+});
+
+document.querySelectorAll('.quick-btn').forEach(b => {
+  b.addEventListener('click', () => applyQuickAction(b.dataset.action));
+});
+
+document.getElementById('exportPdfBtn').addEventListener('click', () => exportToPDF());
+document.getElementById('emailPdfBtn').addEventListener('click', () => emailOrder());
+document.getElementById('clearCartBtn').addEventListener('click', clearCart);
+
+// Initialize order ref with timestamp
+// ============ CLINIC DROPDOWN ============
+function getSelectedClinic() {
+  const id = document.getElementById('clinicSelect').value;
+  return CLINICS.find(c => c.id === id) || null;
+}
+
+function populateClinics() {
+  const sel = document.getElementById('clinicSelect');
+  CLINICS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => {
+    const c = getSelectedClinic();
+    const addrEl = document.getElementById('addressStatic');
+    if (c) {
+      addrEl.textContent = c.address;
+      addrEl.classList.remove('empty');
+    } else {
+      addrEl.textContent = '—';
+      addrEl.classList.add('empty');
+    }
+  });
+}
+populateClinics();
+
+renderArch();
+renderCart();
+</script>
+
+</body>
+</html>

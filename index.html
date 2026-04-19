@@ -937,9 +937,179 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+
+  /* ================ LOGIN ================ */
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .login-overlay.hidden { display: none; }
+  .login-overlay::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(199,62,44,0.05), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(42,111,151,0.05), transparent 40%);
+    pointer-events: none;
+  }
+  .login-card {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 36px 32px 28px;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 380px;
+  }
+  .login-header { text-align: center; margin-bottom: 26px; }
+  .login-header .brand-mark {
+    display: inline-grid;
+    margin-bottom: 14px;
+  }
+  .login-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 28px;
+    font-style: italic;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .login-title em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .login-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .login-field { margin-bottom: 14px; }
+  .login-field label {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .login-field input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg);
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    color: var(--ink);
+    -webkit-appearance: none;
+  }
+  .login-field input:focus {
+    outline: none;
+    border-color: var(--ink);
+  }
+  .login-error {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--accent);
+    min-height: 14px;
+    margin: 2px 0 10px;
+    text-align: center;
+  }
+  .login-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .login-btn:hover { background: #000; }
+  .login-remember {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    user-select: none;
+  }
+  .login-remember input { accent-color: var(--ink); }
+  .logout-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 6px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .logout-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  @media (max-width: 640px) {
+    .login-card { padding: 28px 22px 22px; }
+    .login-title { font-size: 24px; }
+  }
 </style>
 </head>
 <body>
+
+<!-- ============ LOGIN OVERLAY ============ -->
+<div class="login-overlay" id="loginOverlay">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <div class="login-header">
+      <div class="brand-mark">3M</div>
+      <h1 class="login-title"><em>Digital Bonding</em></h1>
+      <div class="login-sub">Bracket Selector · Access Required</div>
+    </div>
+    <div class="login-field">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" autocomplete="username" spellcheck="false" autocapitalize="off" required />
+    </div>
+    <div class="login-field">
+      <label for="loginPwd">Password</label>
+      <input type="password" id="loginPwd" autocomplete="current-password" required />
+    </div>
+    <div class="login-error" id="loginError"></div>
+    <button type="submit" class="login-btn">Sign In</button>
+    <label class="login-remember">
+      <input type="checkbox" id="loginRemember" checked />
+      <span>Stay signed in on this device</span>
+    </label>
+  </form>
+</div>
+
 <div class="app">
 
 <header>
@@ -952,6 +1122,7 @@
   </div>
   <div class="top-actions">
     <span class="badge" id="selectionBadge">0 Selected</span>
+    <button type="button" class="logout-btn" id="logoutBtn" title="Sign out">Sign Out</button>
   </div>
 </header>
 
@@ -1090,6 +1261,71 @@
 </div>
 
 <script>
+// ============ AUTH (soft gate — not real security; source is public) ============
+const AUTH_CONFIG = {
+  email: 'sandra.gauther.hd@gmail.com',
+  // SHA-256 of the password. Plaintext is never stored in source or git history.
+  passHash: '76dc5791da8c92f9c0891aadcdd2e561c4da0bf1d8fe41ec48d946b34b604936',
+};
+const AUTH_KEY = 'bracketSelector.auth.v1';
+
+async function sha256Hex(str) {
+  const bytes = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+function isAuthenticated() {
+  try {
+    return localStorage.getItem(AUTH_KEY) === '1'
+        || sessionStorage.getItem(AUTH_KEY) === '1';
+  } catch { return false; }
+}
+
+function setAuthenticated(remember) {
+  try {
+    if (remember) localStorage.setItem(AUTH_KEY, '1');
+    else sessionStorage.setItem(AUTH_KEY, '1');
+  } catch {}
+}
+
+function logout() {
+  try {
+    localStorage.removeItem(AUTH_KEY);
+    sessionStorage.removeItem(AUTH_KEY);
+  } catch {}
+  location.reload();
+}
+
+async function handleLogin(e) {
+  e.preventDefault();
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pwd = document.getElementById('loginPwd').value;
+  const remember = document.getElementById('loginRemember').checked;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+
+  const hash = await sha256Hex(pwd);
+  if (email !== AUTH_CONFIG.email.toLowerCase() || hash !== AUTH_CONFIG.passHash) {
+    errEl.textContent = 'Invalid email or password';
+    document.getElementById('loginPwd').value = '';
+    return;
+  }
+  setAuthenticated(remember);
+  document.getElementById('loginOverlay').classList.add('hidden');
+}
+
+document.getElementById('loginForm').addEventListener('submit', handleLogin);
+document.getElementById('logoutBtn').addEventListener('click', logout);
+if (isAuthenticated()) {
+  document.getElementById('loginOverlay').classList.add('hidden');
+} else {
+  // Focus email field for quick entry
+  setTimeout(() => document.getElementById('loginEmail').focus(), 50);
+}
+
 // ============ CLINICS ============
 const VICTORY_LABEL = 'Victory Low Profile MBT 022';
 const VICTORY_LABEL_SHORT = 'Victory LP MBT 022';

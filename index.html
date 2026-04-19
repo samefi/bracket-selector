@@ -1089,6 +1089,177 @@
     .login-card { padding: 28px 22px 22px; }
     .login-title { font-size: 24px; }
   }
+
+  /* ================ MODAL ================ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26, 31, 43, 0.55);
+    z-index: 8000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow-y: auto;
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 28px 28px 22px;
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .modal-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.3px;
+  }
+  .modal-close {
+    background: transparent;
+    border: none;
+    font-size: 26px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0 6px;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--ink); }
+  .users-list {
+    margin-bottom: 8px;
+  }
+  .user-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dotted var(--line);
+  }
+  .user-row:last-child { border-bottom: none; }
+  .user-email {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    color: var(--ink);
+    word-break: break-all;
+  }
+  .user-role {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    color: var(--muted);
+  }
+  .user-role.admin {
+    color: var(--accent);
+    border-color: var(--accent-soft);
+  }
+  .user-remove {
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .user-remove:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .user-remove:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .users-empty {
+    padding: 18px 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+  }
+  .add-user-form {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--line);
+  }
+  .add-user-form h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  .add-user-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .add-user-grid .full { grid-column: 1 / -1; }
+  .add-user-form select {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: var(--bg);
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    color: var(--ink);
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .add-user-sync {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px dotted var(--line);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .add-user-sync button {
+    flex: 1 1 auto;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .add-user-sync button:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  @media (max-width: 640px) {
+    .modal-card { padding: 22px 18px 18px; }
+    .add-user-grid { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -1118,6 +1289,44 @@
   </form>
 </div>
 
+<!-- ============ USER MANAGEMENT MODAL ============ -->
+<div class="modal-overlay hidden" id="usersModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h2 class="modal-title">User Management</h2>
+      <button type="button" class="modal-close" id="usersModalClose" aria-label="Close">&times;</button>
+    </div>
+    <div class="users-list" id="usersList"></div>
+    <form class="add-user-form" id="addUserForm" autocomplete="off">
+      <h3>Add New User</h3>
+      <div class="add-user-grid">
+        <div class="login-field full">
+          <label for="newUserEmail">Email</label>
+          <input type="email" id="newUserEmail" required autocomplete="off" spellcheck="false" autocapitalize="off" />
+        </div>
+        <div class="login-field">
+          <label for="newUserPwd">Password</label>
+          <input type="password" id="newUserPwd" required autocomplete="new-password" minlength="6" />
+        </div>
+        <div class="login-field">
+          <label for="newUserRole">Role</label>
+          <select id="newUserRole">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+      </div>
+      <div class="login-error" id="addUserError"></div>
+      <button type="submit" class="login-btn">Add User</button>
+      <div class="add-user-sync">
+        <button type="button" id="exportUsersBtn">Export Users</button>
+        <button type="button" id="importUsersBtn">Import Users</button>
+        <input type="file" id="importUsersFile" accept="application/json" style="display:none" />
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="app">
 
 <header>
@@ -1130,6 +1339,7 @@
   </div>
   <div class="top-actions">
     <span class="badge" id="selectionBadge">0 Selected</span>
+    <button type="button" class="logout-btn" id="manageUsersBtn" style="display:none" title="Manage users">Users</button>
     <button type="button" class="logout-btn" id="logoutBtn" title="Sign out">Sign Out</button>
   </div>
 </header>
@@ -1269,11 +1479,12 @@
 </div>
 
 <script>
-const CFG = {
-  u: 'sandra.gauthier.hd@gmail.com',
-  k: '76dc5791da8c92f9' + 'c0891aadcdd2e561' + 'c4da0bf1d8fe41ec' + '48d946b34b604936',
-};
+const SEED = [
+  { u: 'sandra.gauthier.hd@gmail.com', k: '76dc5791da8c92f9' + 'c0891aadcdd2e561' + 'c4da0bf1d8fe41ec' + '48d946b34b604936', r: 'admin' }
+];
 const SK = 'bracketSelector.s.v1';
+const SU = 'bracketSelector.su.v1';
+const UK = 'bracketSelector.u.v1';
 
 async function _d(s) {
   const b = new TextEncoder().encode(s);
@@ -1283,23 +1494,41 @@ async function _d(s) {
     .join('');
 }
 
+function _loadU() {
+  try { return JSON.parse(localStorage.getItem(UK) || '[]'); }
+  catch { return []; }
+}
+function _saveU(arr) {
+  try { localStorage.setItem(UK, JSON.stringify(arr)); } catch {}
+}
+function _all() {
+  return [...SEED, ..._loadU()];
+}
 function _has() {
   try {
     return localStorage.getItem(SK) === '1' || sessionStorage.getItem(SK) === '1';
   } catch { return false; }
 }
-
-function _grant(r) {
+function _current() {
   try {
-    if (r) localStorage.setItem(SK, '1');
-    else sessionStorage.setItem(SK, '1');
+    const email = localStorage.getItem(SU) || sessionStorage.getItem(SU);
+    if (!email) return null;
+    return _all().find(x => x.u.toLowerCase() === email.toLowerCase()) || null;
+  } catch { return null; }
+}
+function _grant(r, email) {
+  try {
+    const s = r ? localStorage : sessionStorage;
+    s.setItem(SK, '1');
+    s.setItem(SU, email);
   } catch {}
 }
-
 function _revoke() {
   try {
     localStorage.removeItem(SK);
+    localStorage.removeItem(SU);
     sessionStorage.removeItem(SK);
+    sessionStorage.removeItem(SU);
   } catch {}
   location.reload();
 }
@@ -1313,19 +1542,172 @@ async function _submit(e) {
   errEl.textContent = '';
 
   const h = await _d(v);
-  if (u !== CFG.u.toLowerCase() || h !== CFG.k) {
+  const match = _all().find(x => x.u.toLowerCase() === u && x.k === h);
+  if (!match) {
     errEl.textContent = 'Invalid email or password';
     document.getElementById('loginPwd').value = '';
     return;
   }
-  _grant(r);
+  _grant(r, match.u);
   document.getElementById('loginOverlay').classList.add('hidden');
+  _showAdmin();
+}
+
+function _showAdmin() {
+  const c = _current();
+  document.getElementById('manageUsersBtn').style.display =
+    (c && c.r === 'admin') ? '' : 'none';
+}
+
+function _renderUsers() {
+  const list = document.getElementById('usersList');
+  const all = _all();
+  const current = _current();
+  const seedEmails = new Set(SEED.map(x => x.u.toLowerCase()));
+
+  if (all.length === 0) {
+    list.innerHTML = '<div class="users-empty">No users</div>';
+    return;
+  }
+  list.innerHTML = '';
+  all.forEach(user => {
+    const isSeed = seedEmails.has(user.u.toLowerCase());
+    const isSelf = current && user.u.toLowerCase() === current.u.toLowerCase();
+    const row = document.createElement('div');
+    row.className = 'user-row';
+
+    const emailEl = document.createElement('div');
+    emailEl.className = 'user-email';
+    emailEl.textContent = user.u;
+    row.appendChild(emailEl);
+
+    const roleEl = document.createElement('span');
+    roleEl.className = 'user-role' + (user.r === 'admin' ? ' admin' : '');
+    roleEl.textContent = user.r || 'user';
+    row.appendChild(roleEl);
+
+    const rm = document.createElement('button');
+    rm.type = 'button';
+    rm.className = 'user-remove';
+    rm.textContent = 'Remove';
+    if (isSeed || isSelf) {
+      rm.disabled = true;
+      rm.title = isSelf ? 'Cannot remove yourself' : 'Built-in user';
+    } else {
+      rm.addEventListener('click', () => {
+        if (confirm(`Remove ${user.u}?`)) {
+          const stored = _loadU().filter(x => x.u.toLowerCase() !== user.u.toLowerCase());
+          _saveU(stored);
+          _renderUsers();
+        }
+      });
+    }
+    row.appendChild(rm);
+    list.appendChild(row);
+  });
+}
+
+async function _addUser(e) {
+  e.preventDefault();
+  const emailEl = document.getElementById('newUserEmail');
+  const pwdEl = document.getElementById('newUserPwd');
+  const roleEl = document.getElementById('newUserRole');
+  const errEl = document.getElementById('addUserError');
+  errEl.textContent = '';
+
+  const email = emailEl.value.trim().toLowerCase();
+  const pwd = pwdEl.value;
+  const role = roleEl.value;
+
+  if (!email || !pwd) {
+    errEl.textContent = 'Email and password required';
+    return;
+  }
+  if (pwd.length < 6) {
+    errEl.textContent = 'Password must be at least 6 characters';
+    return;
+  }
+  if (_all().some(x => x.u.toLowerCase() === email)) {
+    errEl.textContent = 'A user with that email already exists';
+    return;
+  }
+
+  const k = await _d(pwd);
+  const stored = _loadU();
+  stored.push({ u: email, k, r: role });
+  _saveU(stored);
+
+  emailEl.value = '';
+  pwdEl.value = '';
+  roleEl.value = 'user';
+  _renderUsers();
+}
+
+function _exportUsers() {
+  const stored = _loadU();
+  const blob = new Blob([JSON.stringify(stored, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `users-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function _importUsers(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      if (!Array.isArray(imported)) throw new Error('bad format');
+      const valid = imported.filter(x => x && typeof x.u === 'string' && typeof x.k === 'string');
+      const seedEmails = new Set(SEED.map(x => x.u.toLowerCase()));
+      const merged = _loadU();
+      valid.forEach(v => {
+        if (seedEmails.has(v.u.toLowerCase())) return;
+        const idx = merged.findIndex(x => x.u.toLowerCase() === v.u.toLowerCase());
+        const clean = { u: v.u, k: v.k, r: v.r === 'admin' ? 'admin' : 'user' };
+        if (idx >= 0) merged[idx] = clean;
+        else merged.push(clean);
+      });
+      _saveU(merged);
+      _renderUsers();
+      alert(`Imported ${valid.length} user(s)`);
+    } catch (err) {
+      alert('Invalid user file');
+    }
+  };
+  reader.readAsText(file);
 }
 
 document.getElementById('loginForm').addEventListener('submit', _submit);
 document.getElementById('logoutBtn').addEventListener('click', _revoke);
+document.getElementById('manageUsersBtn').addEventListener('click', () => {
+  _renderUsers();
+  document.getElementById('usersModal').classList.remove('hidden');
+});
+document.getElementById('usersModalClose').addEventListener('click', () => {
+  document.getElementById('usersModal').classList.add('hidden');
+});
+document.getElementById('usersModal').addEventListener('click', (e) => {
+  if (e.target.id === 'usersModal') {
+    document.getElementById('usersModal').classList.add('hidden');
+  }
+});
+document.getElementById('addUserForm').addEventListener('submit', _addUser);
+document.getElementById('exportUsersBtn').addEventListener('click', _exportUsers);
+document.getElementById('importUsersBtn').addEventListener('click', () => {
+  document.getElementById('importUsersFile').click();
+});
+document.getElementById('importUsersFile').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) _importUsers(f);
+  e.target.value = '';
+});
+
 if (_has()) {
   document.getElementById('loginOverlay').classList.add('hidden');
+  _showAdmin();
 } else {
   setTimeout(() => document.getElementById('loginEmail').focus(), 50);
 }

@@ -178,10 +178,11 @@
       opacity: 1;
       margin: 2px 0;
     }
-    .tooth { min-width: 38px; }
+    .tooth { min-width: 0; flex: 1 1 0; max-width: 44px; }
     .tooth-btn {
-      width: 36px;
-      height: 46px;
+      width: 100%;
+      max-width: 36px;
+      height: 44px;
       font-size: 10px;
     }
     .tooth-code { font-size: 7.5px; letter-spacing: -0.2px; }
@@ -247,8 +248,8 @@
 
   /* Smallest phones (<380px) — push tooth sizing further down */
   @media (max-width: 380px) {
-    .tooth { min-width: 34px; }
-    .tooth-btn { width: 32px; height: 42px; font-size: 9.5px; }
+    .tooth { max-width: 40px; }
+    .tooth-btn { max-width: 34px; height: 42px; font-size: 9.5px; }
     .tooth-code { font-size: 7px; }
   }
 

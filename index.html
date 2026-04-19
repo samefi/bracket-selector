@@ -164,14 +164,15 @@
 
     /* Arch — 8-column grid per quadrant, divider spans full row */
     .arch-container { padding: 14px 0; }
-    .arch {
+    .arch-container .arch {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
       gap: 10px 2px;
       justify-items: center;
       align-items: center;
+      flex-wrap: initial;
     }
-    .quadrant-divider {
+    .arch-container .arch .quadrant-divider {
       grid-column: 1 / -1;
       width: 100%;
       height: 1px;

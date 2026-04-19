@@ -1204,10 +1204,10 @@ function renderArch() {
   upper.appendChild(upDiv);
   UPPER_RIGHT.forEach(n => upper.appendChild(makeTooth(n)));
 
-  LOWER_LEFT.forEach(n => lower.appendChild(makeTooth(n)));
+  LOWER_RIGHT.forEach(n => lower.appendChild(makeTooth(n)));
   const loDiv = document.createElement('div'); loDiv.className = 'quadrant-divider';
   lower.appendChild(loDiv);
-  LOWER_RIGHT.forEach(n => lower.appendChild(makeTooth(n)));
+  LOWER_LEFT.forEach(n => lower.appendChild(makeTooth(n)));
 }
 
 // ============ CART ACTIONS ============

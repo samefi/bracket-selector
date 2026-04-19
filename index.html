@@ -1319,10 +1319,12 @@
       <div class="login-error" id="addUserError"></div>
       <button type="submit" class="login-btn">Add User</button>
       <div class="add-user-sync">
-        <button type="button" id="exportUsersBtn">Export Users</button>
-        <button type="button" id="importUsersBtn">Import Users</button>
-        <input type="file" id="importUsersFile" accept="application/json" style="display:none" />
+        <button type="button" id="copyUsersBtn">Copy users.json</button>
+        <a class="login-btn" href="https://github.com/samefi/bracket-selector/edit/main/users.json" target="_blank" rel="noopener" style="flex:1 1 auto;display:inline-block;text-align:center;text-decoration:none;padding:8px 12px;font-size:9px;background:transparent;color:var(--ink-soft);border-color:var(--line);">Open on GitHub</a>
       </div>
+      <p style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);letter-spacing:0.8px;line-height:1.5;">
+        Local additions work only on this device. To share them across all devices, click <strong>Copy users.json</strong>, then paste into <code>users.json</code> on GitHub and commit.
+      </p>
     </form>
   </div>
 </div>
@@ -1479,12 +1481,19 @@
 </div>
 
 <script>
+// Fallback kept in case the remote roster can't load; otherwise the roster file is authoritative
 const SEED = [
   { u: 'sandra.gauthier.hd@gmail.com', k: '76dc5791da8c92f9' + 'c0891aadcdd2e561' + 'c4da0bf1d8fe41ec' + '48d946b34b604936', r: 'admin' }
 ];
 const SK = 'bracketSelector.s.v1';
 const SU = 'bracketSelector.su.v1';
 const UK = 'bracketSelector.u.v1';
+
+let _cache = [];
+const _pre = fetch('users.json?t=' + Date.now(), { cache: 'no-store' })
+  .then(r => r.ok ? r.json() : [])
+  .then(d => { if (Array.isArray(d)) _cache = d; return _cache; })
+  .catch(() => []);
 
 async function _d(s) {
   const b = new TextEncoder().encode(s);
@@ -1502,7 +1511,11 @@ function _saveU(arr) {
   try { localStorage.setItem(UK, JSON.stringify(arr)); } catch {}
 }
 function _all() {
-  return [...SEED, ..._loadU()];
+  const m = new Map();
+  SEED.forEach(u => m.set(u.u.toLowerCase(), u));
+  _cache.forEach(u => { if (u && u.u) m.set(u.u.toLowerCase(), u); });
+  _loadU().forEach(u => { if (u && u.u) m.set(u.u.toLowerCase(), u); });
+  return Array.from(m.values());
 }
 function _has() {
   try {
@@ -1535,6 +1548,7 @@ function _revoke() {
 
 async function _submit(e) {
   e.preventDefault();
+  await _pre;
   const u = document.getElementById('loginEmail').value.trim().toLowerCase();
   const v = document.getElementById('loginPwd').value;
   const r = document.getElementById('loginRemember').checked;
@@ -1643,41 +1657,30 @@ async function _addUser(e) {
   _renderUsers();
 }
 
-function _exportUsers() {
-  const stored = _loadU();
-  const blob = new Blob([JSON.stringify(stored, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `users-${new Date().toISOString().split('T')[0]}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function _importUsers(file) {
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result);
-      if (!Array.isArray(imported)) throw new Error('bad format');
-      const valid = imported.filter(x => x && typeof x.u === 'string' && typeof x.k === 'string');
-      const seedEmails = new Set(SEED.map(x => x.u.toLowerCase()));
-      const merged = _loadU();
-      valid.forEach(v => {
-        if (seedEmails.has(v.u.toLowerCase())) return;
-        const idx = merged.findIndex(x => x.u.toLowerCase() === v.u.toLowerCase());
-        const clean = { u: v.u, k: v.k, r: v.r === 'admin' ? 'admin' : 'user' };
-        if (idx >= 0) merged[idx] = clean;
-        else merged.push(clean);
-      });
-      _saveU(merged);
-      _renderUsers();
-      alert(`Imported ${valid.length} user(s)`);
-    } catch (err) {
-      alert('Invalid user file');
+async function _copyUsers() {
+  await _pre;
+  const payload = _all().map(u => ({ u: u.u, k: u.k, r: u.r === 'admin' ? 'admin' : 'user' }));
+  const text = JSON.stringify(payload, null, 2);
+  const btn = document.getElementById('copyUsersBtn');
+  const original = btn.textContent;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
     }
-  };
-  reader.readAsText(file);
+    btn.textContent = 'Copied!';
+  } catch (err) {
+    btn.textContent = 'Copy failed';
+  }
+  setTimeout(() => { btn.textContent = original; }, 1800);
 }
 
 document.getElementById('loginForm').addEventListener('submit', _submit);
@@ -1695,15 +1698,7 @@ document.getElementById('usersModal').addEventListener('click', (e) => {
   }
 });
 document.getElementById('addUserForm').addEventListener('submit', _addUser);
-document.getElementById('exportUsersBtn').addEventListener('click', _exportUsers);
-document.getElementById('importUsersBtn').addEventListener('click', () => {
-  document.getElementById('importUsersFile').click();
-});
-document.getElementById('importUsersFile').addEventListener('change', (e) => {
-  const f = e.target.files[0];
-  if (f) _importUsers(f);
-  e.target.value = '';
-});
+document.getElementById('copyUsersBtn').addEventListener('click', _copyUsers);
 
 if (_has()) {
   document.getElementById('loginOverlay').classList.add('hidden');
